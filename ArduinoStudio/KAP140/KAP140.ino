@@ -5,8 +5,6 @@
 #include <Adafruit_SH110X.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include "Fonts/FreeSans6pt7b.h"
-#include "Fonts/DSEG7Classic_Regular20pt7b.h"  //https://github.com/keshikan/DSEG and https://rop.nl/truetype2gfx/
-#include "Fonts/DSEG7Classic_Regular22pt7b.h"
 #include "Fonts/DSEG7Classic_Italic14pt7b.h"
 #include "Fonts/DSEG14Classic_Italic14pt7b.h"
 #include "Fonts/DSEG14Classic_Regular14pt7b.h"
@@ -33,7 +31,7 @@ TwoWire I2Ctwo = TwoWire(1);
 
 Adafruit_SH1106G display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2Ctwo, OLED_RESET);
 
-String rightBlockValue = "8888";
+String rightBlockValue = "-";
 int RightBlockMode = 0;
 int BaroMode = 0;
 bool BaroDisplay = 0;
@@ -52,6 +50,7 @@ bool ROL_REV = false;
 bool ROL_APR = false;
 
 // State flags
+bool ap_powered_on = false;
 bool ap_preflight_PFT=false;
 bool ap_preflight_showall=false;
 bool ap_preflight_complete=false;
@@ -121,22 +120,26 @@ void setup() {
 
 }
 
-void loop() {
-  if (!ap_preflight_complete) {     // Autopilot preflight sequence
+void loop() {  
+  if (!ap_powered_on) {
+    power_off_display();
+  }
+  else if (ap_powered_on && !ap_preflight_complete) {     // Autopilot preflight sequence
     startupSequence();
   } 
-  else if (!ap_baro_initialised) {  // waiting for initial Baro setting
-    // flash baro value
-  } 
-  else {                            // Resume normal operation
+  // else if (!ap_baro_initialised) {  // waiting for initial Baro setting
+  //   // flash baro value
+  // } 
+  else {                            // Resume normal operation    
     updateDisplayRight();
     updateDisplayCentre();
     updateDisplayLeft();
   }
+  delay(50);
 }
 
 void onReceive(int len){
-
+  //Serial.println(Wire.available());
   char msgArray[9]="";
   // // if smaller than 32 ignore
   if(Wire.available()>=32)
@@ -167,7 +170,7 @@ void onReceive(int len){
 }
 
 void handleCommand(String command){
-  
+  //Serial.println(command);
   if(command.startsWith("#0")){
        if(command.substring(2)=="0"){           // ALT
         RightBlockMode=0;
@@ -234,17 +237,22 @@ void handleCommand(String command){
     }
   }
   else if(command.startsWith("#6")){
+
+   // Serial.println(command.substring(2));
     ap_preflight_PFT=false;
     ap_preflight_showall=false;
     ap_preflight_complete=false;
-
-    if(command.substring(2)=="0"){  // KAP State (on/off)
+    if(command.charAt(2)=='0'){  // KAP State (on/off)
+      ap_powered_on=false;
+    }
+    if(command.charAt(2)=='2'){  // KAP State (on/off)
+      ap_powered_on=true;
       ap_preflight_PFT=true;
     }
-    if(command.substring(3)=="0"){  // MS autopilot show all
+    if(command.charAt(3)=='1'){  // MS autopilot show all
       ap_preflight_showall=true;
     }
-    if(command.substring(4)=="0"){  // MS autopilot preflight complete
+    if(command.charAt(4)=='1'){  // MS autopilot preflight complete
       ap_preflight_complete=true;
     }
   }
@@ -284,12 +292,29 @@ void setTCAChannel(byte i){
 
 //****************** Display methods
 
+void power_off_display(void) {
+  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  display.clearDisplay();
+  display.display();
+
+  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  display.clearDisplay();
+  display.display();
+
+  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  display.clearDisplay();
+  display.display();
+}
+
 void startupSequence(void) {
+  // Serial.println("Startup");
   if (ap_preflight_PFT && !ap_preflight_showall) {
+ //   Serial.println("PFT");
       display_preFlightTest();
     }
 
     if (ap_preflight_PFT && ap_preflight_showall) {
+ //     Serial.println("Display");
       PFT_step=0; // reset PFT step count
       display_DisplayTest();
     }
@@ -302,7 +327,11 @@ void display_preFlightTest()
   display.setTextColor(SH110X_WHITE);   
 
   _display_upperValue("PFT");
+  display.display();
 
+  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  display.clearDisplay();
+  display.setTextColor(SH110X_WHITE);   
   display.setFont(&DSEG7Classic_Italic14pt7b);
   display.setCursor(4,30);
 
@@ -310,9 +339,14 @@ void display_preFlightTest()
   if(currentMillis - startMillis >= 2000)
   {      
     PFT_step++; // increment the PFT step every 2 seconds
+    startMillis = currentMillis;
   }
   display.println(PFT_step);
 
+  display.display();
+
+  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  display.clearDisplay();
   display.display();
 }
 
@@ -347,21 +381,18 @@ void displayTestMiddle(void)
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);        // Draw white text
 
-  display_PitchTrimUP();
-  display_PitchTrimText();
-  display_PitchTrimDOWN();
-  display_VS();
-
-  //display in upper ALT/VS position
+    //display in upper ALT/VS position
   display.setFont(&DSEG14Classic_Italic14pt7b);
   display.setCursor(20,25);             
   display.println("888");
+  display.setCursor(20,25);             
   display.println("8ST");
 
   // display in ALT position
   display.setFont(&DSEG14Classic_Italic14pt7b);
   display.setCursor(20,61);             
   display.println("888");
+  display.setCursor(20,61);
   display.println("T8T");
   
   display_ARM();
@@ -382,11 +413,13 @@ void displayTestLeft(void)
   display.setTextColor(SH110X_WHITE);
   display.setCursor(20,25);             
   display.println("888");
+  display.setCursor(20,25); 
   display.println("S)S");
 
   display.setFont(&DSEG14Classic_Regular14pt7b);
   display.setCursor(20,61);             
   display.println("888");
+  display.setCursor(20,61);        
   display.println("S8S");
 
   display_ARM();
@@ -643,13 +676,13 @@ void display_rightblock(String _rightBlockValue)
   switch (stringLength)
   {
     case 1:
-      display.setCursor(97,30);    
+      display.setCursor(97,26);    
       break;
     case 2:
-      display.setCursor(76,30);    
+      display.setCursor(76,26);    
       break;
     default:
-      display.setCursor(55,30);    
+      display.setCursor(55,26);    
       break;
   }
   display.println(rightString);
@@ -658,15 +691,15 @@ void display_rightblock(String _rightBlockValue)
   if (leftString.length() > 0) {
     display.setFont(&DSEG7Classic_Italic14pt7b);
     if (leftString.length()==2){  
-      display.setCursor(4,30); 
+      display.setCursor(4,26); 
     } else if (leftString.length()==1) {
-      display.setCursor(25,30); 
+      display.setCursor(25,26); 
     } 
     display.println(leftString);
 
     // if we're displaying the left string, display the comma too
     display.setFont(&DSEG14Classic_Italic14pt7b);
-    display.setCursor(43,38);             
+    display.setCursor(43,34);             
     display.println(",");
   }
 }
@@ -696,9 +729,9 @@ void display_PitchTrimUP(void)
 void display_PitchTrimText(void)
 {
   display.setFont(&FreeSans6pt7b);
-  display.setCursor(112,30);
+  display.setCursor(116,30);
   display.println("P");
-  display.setCursor(112,42);
+  display.setCursor(116,42);
   display.println("T");
 }
 
@@ -788,13 +821,13 @@ void _display_upperValue(String textToShow)
   switch (textToShow.length())
   {
     case 1:
-      display.setCursor(70,25);
+      display.setCursor(70,26);
       break;
     case 2:
-      display.setCursor(45,25);  
+      display.setCursor(45,26);  
       break;
     case 3:
-      display.setCursor(20,25);  
+      display.setCursor(20,26);  
       break;
     default:
       break;
@@ -820,6 +853,7 @@ void _display_lowerValue(String textToShow) {
     default:
       break;
   }
+  display.println(textToShow);
 }
 
 void _display_ARM(int x, int y) {

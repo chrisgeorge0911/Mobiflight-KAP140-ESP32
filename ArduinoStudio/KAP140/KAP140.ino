@@ -25,9 +25,9 @@ TwoWire I2Ctwo = TwoWire(1);
 
 // address of the multiplexer to change the channels
 #define TCA9548A_I2C_ADDRESS  0x70
-#define TCA9548A_CHANNEL_EFIS_LEFT  0
-#define TCA9548A_CHANNEL_EFIS_CENTRE 1
-#define TCA9548A_CHANNEL_EFIS_RIGHT 2
+#define KAP140_DISPLAY_LEFT  0
+#define KAP140_DISPLAY_CENTRE 1
+#define KAP140_DISPLAY_RIGHT 2
 
 Adafruit_SH1106G display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2Ctwo, OLED_RESET);
 
@@ -79,7 +79,7 @@ void setup() {
   Wire.begin((uint8_t)I2C_MOBIFLIGHT_ADDR,I2C_MOBIFLIGHT_SDA,I2C_MOBIFLIGHT_SCL,400000);
   I2Ctwo.begin(I2C_DISPLAY_SDA,I2C_DISPLAY_SCL,400000); // SDA pin 16, SCL pin 17, 400kHz frequency
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  setTCAChannel(KAP140_DISPLAY_LEFT);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SCREEN_ADDRESS, true)) {
@@ -92,7 +92,7 @@ void setup() {
   display.display();
   updateDisplayLeft();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  setTCAChannel(KAP140_DISPLAY_RIGHT);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SCREEN_ADDRESS, true)) {
@@ -105,7 +105,7 @@ void setup() {
   display.display();
   updateDisplayRight();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  setTCAChannel(KAP140_DISPLAY_CENTRE);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SCREEN_ADDRESS, true)) {
@@ -293,15 +293,15 @@ void setTCAChannel(byte i){
 //****************** Display methods
 
 void power_off_display(void) {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  setTCAChannel(KAP140_DISPLAY_CENTRE);
   display.clearDisplay();
   display.display();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  setTCAChannel(KAP140_DISPLAY_RIGHT);
   display.clearDisplay();
   display.display();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  setTCAChannel(KAP140_DISPLAY_LEFT);
   display.clearDisplay();
   display.display();
 }
@@ -322,14 +322,14 @@ void startupSequence(void) {
 
 void display_preFlightTest()
 {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  setTCAChannel(KAP140_DISPLAY_CENTRE);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);   
 
   _display_upperValue("PFT");
   display.display();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  setTCAChannel(KAP140_DISPLAY_RIGHT);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);   
   display.setFont(&DSEG7Classic_Italic14pt7b);
@@ -345,7 +345,7 @@ void display_preFlightTest()
 
   display.display();
 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  setTCAChannel(KAP140_DISPLAY_LEFT);
   display.clearDisplay();
   display.display();
 }
@@ -359,7 +359,7 @@ void display_DisplayTest()
 
 void displayTestRight(void)
 {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  setTCAChannel(KAP140_DISPLAY_RIGHT);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);        // Draw white text
  
@@ -377,7 +377,7 @@ void displayTestRight(void)
 
 void displayTestMiddle(void)
 { 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  setTCAChannel(KAP140_DISPLAY_CENTRE);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);        // Draw white text
 
@@ -405,7 +405,7 @@ void displayTestMiddle(void)
 
 void displayTestLeft(void)
 { 
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  setTCAChannel(KAP140_DISPLAY_LEFT);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);        // Draw white text
 
@@ -431,7 +431,7 @@ void displayTestLeft(void)
 
 void updateDisplayRight(void)
 {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_RIGHT);
+  setTCAChannel(KAP140_DISPLAY_RIGHT);
 
   // Clear the buffer
   display.clearDisplay();
@@ -472,7 +472,7 @@ void updateDisplayRight(void)
 
 void updateDisplayCentre(void)
 {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_CENTRE);
+  setTCAChannel(KAP140_DISPLAY_CENTRE);
   
  // Clear the buffer
   display.clearDisplay();
@@ -497,7 +497,7 @@ void updateDisplayCentre(void)
 
 void updateDisplayLeft(void)
 {
-  setTCAChannel(TCA9548A_CHANNEL_EFIS_LEFT);
+  setTCAChannel(KAP140_DISPLAY_LEFT);
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE); 
   

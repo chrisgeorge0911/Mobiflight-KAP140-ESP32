@@ -1,4 +1,13 @@
-# Mobiflight-A320-Efis-Fcu-Display-with-ESP32
+# Mobiflight-KAP140-ESP32
+KAP140 autopilot display for Mobiflight with ESP32
+
+This repo is forked from Mobiflight-A320-Efis-Fcu-Display-with-ESP32, and uses the core concepts and a customised version of the code to drive a display that emulates the KAP140.
+
+More specifics coming soon...
+
+--------
+
+# [Original] Mobiflight-A320-Efis-Fcu-Display-with-ESP32
 A320 Efis/Fcu Display for Mobiflight with Esp32
 
 ## This project ist still in development!

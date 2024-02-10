@@ -58,6 +58,7 @@ bool ap_baro_initialised=false;  // not used yet
 bool ap_engaged = false;
 bool ap_disengaging = false;
 bool ap_display_state = false;
+bool rightblock_display_state = false;
 bool changedArmState = false;
 bool NavArmState = false;
 bool AprArmState = false;
@@ -127,9 +128,6 @@ void loop() {
   else if (ap_powered_on && !ap_preflight_complete) {     // Autopilot preflight sequence
     startupSequence();
   } 
-  // else if (!ap_baro_initialised) {  // waiting for initial Baro setting
-  //   // flash baro value
-  // } 
   else {                            // Resume normal operation    
     updateDisplayRight();
     updateDisplayCentre();
@@ -285,7 +283,12 @@ void handleCommand(String command){
     }
   }
   else if(command.startsWith("#8")){
-     
+     if(command.charAt(2)=='0'){  // KAP State (on/off)
+      ap_baro_initialised=false;
+     }
+     else if (command.charAt(2)=='1'){
+      ap_baro_initialised=true;
+     }
   }
 }
 
@@ -461,37 +464,52 @@ void updateDisplayRight(void)
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);        // Draw white text
   
-  // if(isAlert)
+  if(!ap_baro_initialised)
+  {
+    currentMillis=millis();
+    if(currentMillis - startMillis >= flashperiod)
+    {      
+      rightblock_display_state = !rightblock_display_state;      
+      startMillis = currentMillis;
+    }
+  }
+  else {
+    rightblock_display_state = true;
+  }
+
+    // if(isAlert)
   // {
   //   displayAlert();
   // }
-  
-  if(RightBlockMode == 0) // showing target alt
-  {
-    display_ft();
-  }
-  else if(RightBlockMode == 1)   // showing vs fpm
-  {
-    display_fpm();
-  }
-  else if(RightBlockMode == 2)   // showing vs fpm
-  {
-    if(BaroDisplay && BaroMode == 1) // Baro is in HG
-    {
-      display_inhg();
-    }
 
-    if(BaroDisplay && BaroMode == 0) // Baro is in HPA
+  if (rightblock_display_state){
+    if(RightBlockMode == 0) // showing target alt
     {
-      display_hpa();
+      display_ft();
     }
-  }
-  
-  display_rightblock(rightBlockValue);
+    else if(RightBlockMode == 1)   // showing vs fpm
+    {
+      display_fpm();
+    }
+    else if(RightBlockMode == 2)   // showing vs fpm
+    {
+      if(BaroDisplay && BaroMode == 1) // Baro is in HG
+      {
+        display_inhg();
+      }
 
-  // Show the display buffer on the screen. You MUST call display() after
+      if(BaroDisplay && BaroMode == 0) // Baro is in HPA
+      {
+        display_hpa();
+      }
+    }
+    
+    display_rightblock(rightBlockValue);
+  }
+
+    // Show the display buffer on the screen. You MUST call display() after
   // drawing commands to make them visible on screen!
-  display.display();
+  display.display();  
 }
 
 void updateDisplayCentre(void)

@@ -171,20 +171,20 @@ void onReceive(int len){
 
 void handleCommand(String command){
   //Serial.println(command);
-  if(command.startsWith("#0")){
-       if(command.substring(2)=="0"){           // ALT
-        RightBlockMode=0;
-      } else if (command.substring(2)=="1") {   // VS
-        RightBlockMode=1;        
-      } else if (command.substring(2)=="2") {   // Baro
-        RightBlockMode=2;
-      }
+  if(command.startsWith("#0")){    
+      if(command.substring(2)=="0"){           // ALT
+      RightBlockMode=0;
+    } else if (command.substring(2)=="1") {   // VS
+      RightBlockMode=1;        
+    } else if (command.substring(2)=="2") {   // Baro
+      RightBlockMode=2;
+    }
   }
   else if(command.startsWith("#1")){  // how long the value should be
-    int rightBlockLength = command.substring(2,3).toInt();
-    rightBlockValue=command.substring(8-rightBlockLength);
-  }
-  else if(command.startsWith("#2")){
+          int rightBlockLength = command.substring(2,3).toInt();
+      rightBlockValue=command.substring(8-rightBlockLength);
+    }
+    else if(command.startsWith("#2")){
       if(command.substring(2)=="0"){
         BaroMode = 0;
       }else{
@@ -244,6 +244,7 @@ void handleCommand(String command){
     ap_preflight_complete=false;
     if(command.charAt(2)=='0'){  // KAP State (on/off)
       ap_powered_on=false;
+      reset_AP();
     }
     if(command.charAt(2)=='2'){  // KAP State (on/off)
       ap_powered_on=true;
@@ -288,6 +289,21 @@ void setTCAChannel(byte i){
   I2Ctwo.write(1 << i);
   I2Ctwo.endTransmission();  
   //  delay(5); // Pause
+}
+
+void reset_AP(void){
+  ap_powered_on = false;
+  ap_preflight_PFT=false;
+  ap_preflight_showall=false;
+  ap_preflight_complete=false;
+  ap_baro_initialised=false;  // not used yet
+  ap_engaged = false;
+  ap_disengaging = false;
+  ap_display_state = false;
+  changedArmState = false;
+  NavArmState = false;
+  AprArmState = false;
+  RevArmState = false;
 }
 
 //****************** Display methods

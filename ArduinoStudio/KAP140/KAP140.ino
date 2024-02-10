@@ -181,15 +181,23 @@ void handleCommand(String command){
     }
   }
   else if(command.startsWith("#1")){  // how long the value should be
-          int rightBlockLength = command.substring(2,3).toInt();
-      rightBlockValue=command.substring(8-rightBlockLength);
-    }
-    else if(command.startsWith("#2")){
-      if(command.substring(2)=="0"){
-        BaroMode = 0;
-      }else{
-        BaroMode = 1;
+    if (!ap_preflight_showall) {
+      if (command=="#1310100") {
+        PFT_step=1;
+      } 
+      else if(command=="#1310200") {
+        PFT_step=2;
       }
+    }
+    int rightBlockLength = command.substring(2,3).toInt();
+    rightBlockValue=command.substring(8-rightBlockLength);
+  }
+  else if(command.startsWith("#2")){
+    if(command.substring(2)=="0"){
+      BaroMode = 0;
+    }else{
+      BaroMode = 1;
+    }
   }
   else if(command.startsWith("#3")){
     if(command.substring(2)=="0"){
@@ -351,12 +359,12 @@ void display_preFlightTest()
   display.setFont(&DSEG7Classic_Italic14pt7b);
   display.setCursor(4,30);
 
-  currentMillis=millis();
-  if(currentMillis - startMillis >= 2000)
-  {      
-    PFT_step++; // increment the PFT step every 2 seconds
-    startMillis = currentMillis;
-  }
+  // currentMillis=millis();
+  // if(currentMillis - startMillis >= 2000)
+  // {      
+  //   PFT_step++; // increment the PFT step every 2 seconds
+  //   startMillis = currentMillis;
+  // }
   display.println(PFT_step);
 
   display.display();

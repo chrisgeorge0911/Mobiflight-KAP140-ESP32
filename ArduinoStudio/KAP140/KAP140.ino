@@ -54,7 +54,7 @@ bool ap_powered_on = false;
 bool ap_preflight_PFT=false;
 bool ap_preflight_showall=false;
 bool ap_preflight_complete=false;
-bool ap_baro_initialised=false;  // not used yet
+bool ap_baro_initialised=false;
 bool ap_engaged = false;
 bool ap_disengaging = false;
 bool ap_display_state = false;
@@ -191,13 +191,13 @@ void handleCommand(String command){
       }
     }
     int rightBlockLength = command.substring(2,3).toInt();
-    rightBlockValue=command.substring(8-rightBlockLength);
+    rightBlockValue=command.substring(8-rightBlockLength);    
   }
   else if(command.startsWith("#2")){
     if(command.substring(2)=="0"){
       BaroMode = 0;
     }else{
-      BaroMode = 1;
+      BaroMode = 1;      
     }
   }
   else if(command.startsWith("#3")){
@@ -205,6 +205,9 @@ void handleCommand(String command){
       BaroDisplay=false;
     }else{
       BaroDisplay=true;
+      if (BaroMode == 1) {
+        rightBlockValue += " ";  // if HG, pad the value with one space to display XX,XX
+      }
     }
   }
   else if(command.startsWith("#4")){
@@ -509,11 +512,11 @@ void updateDisplayRight(void)
     {
       display_fpm();
     }
-    else if(RightBlockMode == 2)   // showing vs fpm
+    else if(RightBlockMode == 2)   // showing baro
     {
       if(BaroDisplay && BaroMode == 1) // Baro is in HG
       {
-        display_inhg();
+        display_inhg();        
       }
 
       if(BaroDisplay && BaroMode == 0) // Baro is in HPA
@@ -762,10 +765,13 @@ void display_rightblock(String _rightBlockValue)
     } 
     display.println(leftString);
 
-    // if we're displaying the left string, display the comma too
-    display.setFont(&DSEG14Classic_Italic14pt7b);
-    display.setCursor(43,34);             
-    display.println(",");
+    if(RightBlockMode != 1) // don't show the comma in VS mode
+    {
+      // if we're displaying the left string, display the comma too
+      display.setFont(&DSEG14Classic_Italic14pt7b);
+      display.setCursor(43,34);             
+      display.println(",");
+    }
   }
 }
 

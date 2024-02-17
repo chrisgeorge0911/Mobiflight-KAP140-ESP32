@@ -58,7 +58,10 @@ bool ap_baro_initialised=false;  // not used yet
 bool ap_engaged = false;
 bool ap_disengaging = false;
 bool ap_display_state = false;
+bool ap_alert_solid = false;
+bool ap_alert_flash = false;
 bool rightblock_display_state = false;
+bool alert_display_state = false;
 bool changedArmState = false;
 bool NavArmState = false;
 bool AprArmState = false;
@@ -289,6 +292,17 @@ void handleCommand(String command){
      else if (command.charAt(2)=='1'){
       ap_baro_initialised=true;
      }
+
+     if(command.charAt(3)=='0'){
+      ap_alert_flash = false;
+      ap_alert_solid = false;
+     } else if (command.charAt(3)=='1'){
+      ap_alert_solid = true;
+      ap_alert_flash = false;     
+     } else if (command.charAt(3)=='2'){
+      ap_alert_solid = false;
+      ap_alert_flash = true;
+     }
   }
 }
 
@@ -362,12 +376,6 @@ void display_preFlightTest()
   display.setFont(&DSEG7Classic_Italic14pt7b);
   display.setCursor(4,30);
 
-  // currentMillis=millis();
-  // if(currentMillis - startMillis >= 2000)
-  // {      
-  //   PFT_step++; // increment the PFT step every 2 seconds
-  //   startMillis = currentMillis;
-  // }
   display.println(PFT_step);
 
   display.display();
@@ -477,10 +485,20 @@ void updateDisplayRight(void)
     rightblock_display_state = true;
   }
 
-    // if(isAlert)
-  // {
-  //   displayAlert();
-  // }
+  if(ap_alert_solid)
+  {
+    alert_display_state = true;
+  }
+  else if (ap_alert_flash) {
+    currentMillis=millis();
+    if(currentMillis - startMillis >= flashperiod)
+    {      
+      alert_display_state = !alert_display_state;      
+      startMillis = currentMillis;
+    }
+  } else {
+    alert_display_state = false;
+  }
 
   if (rightblock_display_state){
     if(RightBlockMode == 0) // showing target alt
@@ -502,6 +520,11 @@ void updateDisplayRight(void)
       {
         display_hpa();
       }
+    }
+
+    if (alert_display_state)
+    {
+      display_alert();
     }
     
     display_rightblock(rightBlockValue);

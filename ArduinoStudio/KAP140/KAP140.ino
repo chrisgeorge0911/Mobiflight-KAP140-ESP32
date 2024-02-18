@@ -174,11 +174,14 @@ void handleCommand(String command){
   //Serial.println(command);
   if(command.startsWith("#0")){    
       if(command.substring(2)=="0"){           // ALT
-      RightBlockMode=0;
+      RightBlockMode=0;        
+      BaroDisplay=false;
     } else if (command.substring(2)=="1") {   // VS
       RightBlockMode=1;        
+      BaroDisplay=false;
     } else if (command.substring(2)=="2") {   // Baro
       RightBlockMode=2;
+      BaroDisplay=true;      
     }
   }
   else if(command.startsWith("#1")){  // how long the value should be
@@ -197,18 +200,25 @@ void handleCommand(String command){
     if(command.substring(2)=="0"){
       BaroMode = 0;
     }else{
-      BaroMode = 1;      
+      BaroMode = 1; 
+      if (RightBlockMode == 2)
+      {
+        if (rightBlockValue.length() < 5)
+        {
+          rightBlockValue += " ";
+        }
+      }     
     }
   }
   else if(command.startsWith("#3")){
-    if(command.substring(2)=="0"){
-      BaroDisplay=false;
-    }else{
-      BaroDisplay=true;
-      if (BaroMode == 1) {
-        rightBlockValue += " ";  // if HG, pad the value with one space to display XX,XX
-      }
-    }
+    // if(command.substring(2)=="0"){
+    //   BaroDisplay=false;
+    // }else{
+    //   BaroDisplay=true;
+    //   if (BaroMode == 1) {
+    //     rightBlockValue += " ";  // if HG, pad the value with one space to display XX,XX
+    //   }
+    // }
   }
   else if(command.startsWith("#4")){
     ROL_HDG=false;
